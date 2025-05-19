@@ -80,6 +80,7 @@ Week 1 - Exercises
             The following Solidity and Rust snippets shows the (Key ⇒ Value) functionality. Solidity provides this through a mapping while Rust provides it through an Hashmap.
             
             - What is the main difference between the two languages about non-initialized data?
+            Solidity allows to use the uninitialized variable by assigning a default value to it, rust wont let you use it unless you initialize it
             - Snippets
                 
                 ```solidity
@@ -118,9 +119,10 @@ Week 1 - Exercises
 
     Exercise 3 - Security analysis
         Analyze the following piece of code with a security mindset and answer to the following:
-        Explain what the function does.
-        What could go wrong?
-        How to fix it?
+        Explain what the function does: The function receives a deposit of a collateral amount to be transferred from the caller to the contract, adjust the token amount precision, to later mint an asset corresponding to the amount deposited.
+        What could go wrong? `as u64` could result in a lost of data, or overflow
+        How to fix it? We could use checked arithmetics to raise an alert when that happens.
+
         Note: This code is taken from a Solana program written with Anchor, but it has been heavily simplified.
         Note: DECIMALS_SCALAR value is not given. It is an u128 which may have any value except 0.
         Note: exchange_rate.deposit_rate is an u64.
