@@ -31,6 +31,7 @@ Expected outputs:
 - An in-depth analysis of the contract. Comments should be added to the code snippet to explain the concepts shown in Lecture of Week 2.
 
 ```rust
+// Imports to be able to interact with NEAR native functionality
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::U64;
 use near_sdk::serde::Serialize;
@@ -40,9 +41,9 @@ use near_sdk::{env, near_bindgen, AccountId, NearToken};
 const POINT_ONE: NearToken = NearToken::from_millinear(100);
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize)]
-#[serde(crate = "near_sdk::serde")]
+#[serde(crate = "near_sdk::serde")]// indicates which crate to take this serde and borsh from, avoids version mismatch in case there are several
 #[borsh(crate = "near_sdk::borsh")]
-pub struct PostedMessage {
+pub struct PostedMessage {// The PostedMessage implements already the traits above
     pub premium: bool,
     pub sender: AccountId,
     pub text: String,
@@ -51,11 +52,11 @@ pub struct PostedMessage {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]
 #[borsh(crate = "near_sdk::borsh")]
-pub struct Contract {
+pub struct Contract {// The Contract implements already the traits above
     messages: Vector<PostedMessage>,
 }
 
-impl Default for Contract {
+impl Default for Contract {// Implements a default behavior for Contract so its easier to create new instances
     fn default() -> Self {
         Self {
             messages: Vector::new(b"m"),
@@ -64,9 +65,9 @@ impl Default for Contract {
 }
 
 #[near_bindgen]
-impl Contract {
-    #[payable]
-    pub fn add_message(&mut self, text: String) {
+impl Contract {// Implements add_message, get_messages, and total_messages functions to Contract
+    #[payable]// Means this function can receive funds
+    pub fn add_message(&mut self, text: String) {// Creates a new message with the given tests and adds it to the message queue
         let premium = env::attached_deposit() >= POINT_ONE;
         let sender = env::predecessor_account_id();
 
@@ -78,7 +79,7 @@ impl Contract {
 
         self.messages.push(message);
     }
-
+    // Returns the message found by filtering by from
     pub fn get_messages(&self, from_index: Option<U64>, limit: Option<U64>) -> Vec<&PostedMessage> {
         let from = u64::from(from_index.unwrap_or(U64(0)));
         let limit = u64::from(limit.unwrap_or(U64(10)));
@@ -87,20 +88,21 @@ impl Contract {
             .iter()
             .skip(from as usize)
             .take(limit as usize)
-            .collect()
+            .collect()// collects the filtering results, if none, returns an empty vector
     }
-
+    // Returns the amount of messages created
     pub fn total_messages(&self) -> u32 {
         self.messages.len()
     }
 }
 
-#[cfg(test)]
+#[cfg(test)]// Indicates its a tests section and wont include this into the production build
 mod tests {
     use super::*;
 
-    #[test]
+    #[test]//Indicates is a test function and should be run as such
     fn add_message() {
+        // Creates the default Contract and adds a sample message to later verify said message can be fetch and will contain the parameters set at creation
         let mut contract = Contract::default();
         contract.add_message("A message".to_string());
 
@@ -111,6 +113,7 @@ mod tests {
 
     #[test]
     fn iters_messages() {
+        // Creates the default Contract and adds a set of messages, makes sure all the messages are in the message queue, and filters a specific message at a specific index
         let mut contract = Contract::default();
         contract.add_message("1st message".to_string());
         contract.add_message("2nd message".to_string());
@@ -125,6 +128,11 @@ mod tests {
     }
 }
 ```
+**OUTPUT:**
+- Summary explaining the purpose of this contract (should fit in 5-6 lines)
+ This is a rust program that will interact with the NEAR chain, it imports the necessary sdks, creating the structs necessary to interact with it and adding several extra functionality, also
+ it includes a tests module with several tests scenarios, when having with a single message and when having several messages.
+- An in-depth analysis of the contract. Comments should be added to the code snippet to explain the concepts shown in Lecture of Week 2. (See code snippet for output)
 
 ### Exercise 3 - Code analysis - Rust variants
 
