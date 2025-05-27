@@ -143,6 +143,9 @@ Goal: Analyze a smart contract written in Cairo. ⚠️ This is not a security a
 Expected outputs:
 
 - A summary explaining the purpose of this contract (should fit in 5-6 lines)
+    This contracts defines the standard ERC20 interface, as well as a simple vault(where you deposit token A to get the vaults token) interface,
+    then proceeds to create an instance of the simple vault with mint and burn private function, and deposit and withdraw public functions to deposit the ERC20
+    to get vault shares, or return vault shares to get erc20 tokens.
 - An in-depth analysis of the contract. Comments should be added to the code snippet to explain the concepts shown in Week 2 Lectures.
 
 Resources:
@@ -150,10 +153,10 @@ Resources:
 - https://book.cairo-lang.org/
 
 ```rust
-use starknet::ContractAddress;
+use starknet::ContractAddress;// Importing the ContractAddress type that is compatible with starknet
 
-#[starknet::interface]
-pub trait IERC20<TContractState> {
+#[starknet::interface]//Indicates the following can be use as an interface later on
+pub trait IERC20<TContractState> {//Creates a ERC20 trait with generic contract state, and the must have functions
     fn get_name(self: @TContractState) -> felt252;
     fn get_symbol(self: @TContractState) -> felt252;
     fn get_decimals(self: @TContractState) -> u8;
@@ -176,7 +179,7 @@ pub trait IERC20<TContractState> {
     );
 }
 
-#[starknet::interface]
+#[starknet::interface]// Defines a Simple Vault interface with its needed functions
 pub trait ISimpleVault<TContractState> {
     fn deposit(ref self: TContractState, amount: u256);
     fn withdraw(ref self: TContractState, shares: u256);
@@ -185,26 +188,26 @@ pub trait ISimpleVault<TContractState> {
 }
 
 #[starknet::contract]
-pub mod SimpleVault {
+pub mod SimpleVault {//Defines a simple vault contract
     use super::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
 
-    #[storage]
-    struct Storage {
+    #[storage]//Define where are the following stored, Im assuming you can also indicate memory etc
+    struct Storage {//Defines the values we want to keep track of
         token: IERC20Dispatcher,
         total_supply: u256,
-        balance_of: LegacyMap<ContractAddress, u256>
+        balance_of: LegacyMap<ContractAddress, u256>//A mapping between an address and its balance
     }
 
-    #[constructor]
+    #[constructor]//Code to be executed only at deployment
     fn constructor(ref self: ContractState, token: ContractAddress) {
-        self.token.write(IERC20Dispatcher { contract_address: token });
+        self.token.write(IERC20Dispatcher { contract_address: token });//Stores the token to be used by the contract
     }
 
-    #[generate_trait]
+    #[generate_trait]//Defines private functions for minting and burning tokens
     impl PrivateFunctions of PrivateFunctionsTrait {
         fn _mint(ref self: ContractState, to: ContractAddress, shares: u256) {
-            self.total_supply.write(self.total_supply.read() + shares);
+            self.total_supply.write(self.total_supply.read() + shares);//writes to storage
             self.balance_of.write(to, self.balance_of.read(to) + shares);
         }
 
@@ -215,11 +218,11 @@ pub mod SimpleVault {
         
     }
 
-    #[abi(embed_v0)]
+    #[abi(embed_v0)]//Since this contract is a vault using the interface of SimpleVault it must implement the functions listed in the interface declaration
     impl SimpleVault of super::ISimpleVault<ContractState> {
 
         fn user_balance_of(ref self: ContractState, account: ContractAddress) -> u256 {
-            self.balance_of.read(account)
+            self.balance_of.read(account)//Reads from storage
         }
 
         fn contract_total_supply(ref self: ContractState) -> u256 {
@@ -227,6 +230,9 @@ pub mod SimpleVault {
         }
 
         fn deposit(ref self: ContractState, amount: u256){
+            //This function accepts a token deposit of the selected token at creation of the vault(this contract)
+            //Computes the amount of shares corresponding to the amount deposited, taking into account whats the proportion
+            // of the deposit amount with the contracts balance, and later mints said shares amount to the caller
             let caller = get_caller_address();
             let this = get_contract_address();
 
@@ -246,6 +252,8 @@ pub mod SimpleVault {
         }
 
         fn withdraw(ref self: ContractState, shares: u256) {
+            // This function computes the balance to be returned based on the shares being returned, then the shares are burned
+            // and the computed balance is transferred to the contract caller
             let caller = get_caller_address();
             let this = get_contract_address();
 
@@ -307,3 +315,9 @@ Retake the Calculator program from Exercise 1.
 
 - Add a `print_output` function which needs a single input parameter with the 3 defined traits:  `AdditiveOperations`, `MultiplicativeOperations` , `BinaryOperations`
 - This function should print every operations’ results for the given input.
+
+
+Questions:
+- How do we turn in the weekly tasks?
+- Is my analysis deep enough for the code snippets?
+- Is my analyses correct?
