@@ -354,5 +354,6 @@ Retake the Calculator program from Exercise 1.
 Questions:
 - How do we turn in the weekly tasks?
 - Is my analysis deep enough for the code snippets?
-- Is my analyses correct?
+- Are my analyses correct?
 - What am I doing wrong when running the tests?
+- Final exam due date?
