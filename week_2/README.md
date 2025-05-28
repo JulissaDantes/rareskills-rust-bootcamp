@@ -273,6 +273,40 @@ The content of this exercise is available at https://github.com/zigtur/vulnerabl
 
 - Audit the smart contract written for the NEAR blockchain
 - Describe at least 2 issues with high severity. Write a recommendation to fix the code!
+
+Issue 1
+Problem:
+Considering `pub type Id = u8;` and `pub supply: u16` when we do this on mint `self.tokens.insert(self.supply.to_le_bytes()[0], env::predecessor_account_id());` we are loosing data, therefore not assigning the correct `Id`. 
+Solution:
+To fix it I recommend changing that line to `self.tokens.insert(self.supply as Id, env::predecessor_account_id());`
+
+Issue 2
+Problem:
+The minting function has no access control of any kind, everybody can just call it as many times as they wish.
+Solution:
+Make the function only callable by the owner, for that we need to update the storage to include an `owner` variable and then add this line at the top of the function: `require!(
+            env::predecessor_account_id() == self.owner,
+            "Only the owner can call this function"
+        );`
+
+Issue3
+Problem:
+Inside the transfer function the only check made is if the caller has the token or has the token allowance, but misses to check if the token exist, nor does it decreases the allowance, allowing the sender to transfer this token after it transfer it to a previous receiver.
+Solution:
+I would rewrite the transfer function like this:
+```
+    pub fn transfer(&mut self, id: Id, receiver: AccountId) {
+        require!(self.tokens.get(&id).is_some(), "not real token Id");
+        require!(
+            self.tokens.get(&id).unwrap().clone() == env::predecessor_account_id()
+            || self.approvals.get(&id).unwrap().clone() == env::predecessor_account_id()
+            , "not owner!"
+        );
+        self.tokens.insert(id, receiver);
+        self.approvals.remove(&id);
+    }
+```
+
 - Write one Proof-of-Concept for each issue as a unit test.
     - Always initialize the contract with “admin.near” as AccountId, so that the first token is minted to this user.
     - Write your PoC with Bob as the attacker.
@@ -321,3 +355,4 @@ Questions:
 - How do we turn in the weekly tasks?
 - Is my analysis deep enough for the code snippets?
 - Is my analyses correct?
+- What am I doing wrong when running the tests?
