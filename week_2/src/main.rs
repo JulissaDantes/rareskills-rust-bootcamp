@@ -60,7 +60,7 @@ impl BinaryOperations for Calculator {
 }
 
 impl Display for Calculator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {//TODO idiomatic
         write!(f, "- Addition {}
 \n- Subtraction {}
 \n- Multiplication {}

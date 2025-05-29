@@ -6,7 +6,7 @@ pub type Id = u8;
 #[near(contract_state)]
 pub struct Contract {
     pub tokens: LookupMap<Id, AccountId>,
-    pub approvals: LookupMap<Id, AccountId>,//How does is know who made the approval?
+    pub approvals: LookupMap<Id, AccountId>,
     pub supply: u16,
 }
 
@@ -48,7 +48,7 @@ impl Contract {
 
     pub fn mint(&mut self) -> Id {//BUG everybody can mint themselves tokens?
         self.tokens.insert(self.supply.to_le_bytes()[0], env::predecessor_account_id());
-        let id = self.supply;//applies the wrong id
+        let id = self.supply;//applies the wrong id risk
         self.supply += 1;
         id as Id
     }

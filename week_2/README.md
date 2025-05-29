@@ -349,11 +349,3 @@ Retake the Calculator program from Exercise 1.
 
 - Add a `print_output` function which needs a single input parameter with the 3 defined traits:  `AdditiveOperations`, `MultiplicativeOperations` , `BinaryOperations`
 - This function should print every operations’ results for the given input.
-
-
-Questions:
-- How do we turn in the weekly tasks?
-- Is my analysis deep enough for the code snippets?
-- Are my analyses correct?
-- What am I doing wrong when running the tests?
-- Final exam due date?
