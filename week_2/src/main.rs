@@ -71,7 +71,19 @@ impl Display for Calculator {
     }
 }
 
+fn print_output<T: AdditiveOperations + MultiplicativeOperations + BinaryOperations>(input: T) {
+    // AdditiveOperations
+    println!("Add: {} Subtraction: {}", input.add(), input.sub());
+    // MultiplicativeOperations
+    println!("Multiplication: {} Division: {}", input.mul(), input.div().unwrap_or(0));
+    // BinaryOperations
+    println!("And: {} Or: {} XOR: {}", input.and(), input.or(), input.xor());
+
+}
+
 fn main() {
    let calculator = Calculator { number_1: 2, number_2: 1 };
     println!("Calculator: \n{}", calculator);
+
+    print_output(calculator);
 }
