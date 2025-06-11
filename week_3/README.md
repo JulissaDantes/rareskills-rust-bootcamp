@@ -43,10 +43,10 @@ pub fn slashing_handler<'info>(
     router: u8,
     is_locked: u8 
 ) -> Result<()> {
-    {    
+    {   
         let stake_pool = &mut ctx.accounts.stake_pool.load_mut()?;
         let pool = &mut stake_pool.reward_pools[usize::from(router)];
-        pool.is_locked = is_locked;
+        pool.is_locked = is_locked; 
 
         let cpi_ctx = CpiContext {
             program: ctx.accounts.token_program.to_account_info(),
@@ -64,8 +64,16 @@ pub fn slashing_handler<'info>(
     } 
 }
 ```
+# Bugs found
+1. The `StakePool` structs saves the `locker` account, said account id the only one that should be able to modify the `is_locked` value, but the `slashing_handler` function have nop access control checks before calling the line `pool.is_locked = is_locked;` therefore anybody could alter the locked state of the pool.
 
-- Additional ressources
+2. When the `token` contract is called to do the transfer the returned value is ignored and `slashing_handler` always returns with `Ok(())` status, the value should be check to ensure the transfer was successful, and in case its not, take the needed precautions or revert completely.
+
+3. Vault builds the wrong CpiContext by assigning the same account for `from` and for `to`, they should be different, else it will result in no changes in balance being performed.
+
+
+
+- Additional resources
     - `StakePool` structure
         
         ```rust
@@ -93,8 +101,8 @@ pub fn slashing_handler<'info>(
             pub reward_pools: [RewardPool; MAX_REWARD_POOLS],
             /// The minimum weight received for staking. In terms of 1 / SCALE_FACTOR_BASE.
             /// Examples:
-            /// * `min_weight = 1 x SCALE_FACTOR_BASE` = minmum of 1x multiplier for > min_duration staking
-            /// * `min_weight = 2 x SCALE_FACTOR_BASE` = minmum of 2x multiplier for > min_duration staking
+            /// * `min_weight = 1 x SCALE_FACTOR_BASE` = minium of 1x multiplier for > min_duration staking
+            /// * `min_weight = 2 x SCALE_FACTOR_BASE` = minium of 2x multiplier for > min_duration staking
             pub base_weight: u64,
             /// Maximum weight for staking lockup (i.e. weight multiplier when locked
             /// up for max duration). In terms of 1 / SCALE_FACTOR_BASE. Examples:
@@ -142,6 +150,9 @@ The content of this exercise is available at https://github.com/zigtur/vulnerabl
     - A Time To Live (TTL) is attached to storage entries. This must be extended to not expire.
     - See: https://developers.stellar.org/docs/learn/encyclopedia/storage/persisting-data
 
+# Bugs found
+
+
 ### Security analysis - Node implementation
 
 The content of this exercise is available at https://github.com/zigtur/vulnerable-HTTP-server.
@@ -152,3 +163,5 @@ For this exercise:
 - Find 2 vulnerabilities that crash the node
 - Write a PoC for each vulnerability. Prefer writing your PoC in Rust :)
     - reqwest crate may be useful
+
+# Bugs found
