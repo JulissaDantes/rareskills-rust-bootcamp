@@ -1,4 +1,7 @@
 week_1/target
 week_2/target
+week_3/target
+week_3/Cargo.lock
+week_3/test_snapshots
 settings.json
 week_1/target/.rustc_info.json
